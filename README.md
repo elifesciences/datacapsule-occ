@@ -28,5 +28,10 @@ To download and extract:
 
 Alternatively use one of the other bash scripts to run an individual step.
 
-The final output will be `doi-citation-links.csv` with the columns: `citing_doi`, `citing_title`, `cited_doi` (~1 GB, 100 MB compressed)
+The final output will be `doi-citation-links.csv` with the columns:
+* `citing_doi`
+* `citing_title`
+* `cited_doi`
+
+(~1 GB, 100 MB compressed)
 
