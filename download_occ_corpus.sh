@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 TEMP_DIR=.temp
 
 if [ -f .config ]; then
