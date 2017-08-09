@@ -52,8 +52,8 @@ def extract_from_br_json_files(
   br_citation_links_output_path,
   br_id_links_output_path):
 
-  with open(br_citation_links_output_path, 'wb') as br_citation_links_f:
-    with open(br_id_links_output_path, 'wb') as br_gid_links_f:
+  with open(br_citation_links_output_path, 'w') as br_citation_links_f:
+    with open(br_id_links_output_path, 'w') as br_gid_links_f:
       br_citation_links_writer = csv.writer(br_citation_links_f)
       br_citation_links_writer.writerow([
         'citing_br_id',

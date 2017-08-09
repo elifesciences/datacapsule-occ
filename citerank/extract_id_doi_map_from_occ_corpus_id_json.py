@@ -34,7 +34,7 @@ def iter_extract_from_id_json_files(id_json_files):
           yield (n['iri'], n['id'])
 
 def extract_from_id_json_files(id_json_files, doi_map_output_path):
-  with open(doi_map_output_path, 'wb') as doi_map_f:
+  with open(doi_map_output_path, 'w') as doi_map_f:
     doi_map_writer = csv.writer(doi_map_f)
     doi_map_writer.writerow(['id', 'doi'])
     for iri, doi in iter_extract_from_id_json_files(id_json_files):
