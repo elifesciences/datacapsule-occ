@@ -61,5 +61,5 @@ OpenCitations Data
 
 The following diagram illustrates the data used from the [OpenCitations Corpus](http://opencitations.net/download).
 
-![OpenCitations Data Used](doc/opencitations-data-used.svg)
+![OpenCitations Data Used](doc/opencitations-data-used.png)
 
