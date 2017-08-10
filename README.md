@@ -54,6 +54,8 @@ The final output will be `doi-citation-links.csv` with the columns:
 
 (~1 GB, 100 MB compressed)
 
+The whole process will require approximately 18 GB in the _$TEMP_DIR_ directory (including under 1 GB download).
+
 OpenCitations Data
 ------------------
 
