@@ -40,3 +40,10 @@ The final output will be `doi-citation-links.csv` with the columns:
 
 (~1 GB, 100 MB compressed)
 
+OpenCitations Data
+------------------
+
+The following diagram illustrates the data used from the [OpenCitations Corpus](http://opencitations.net/download).
+
+![OpenCitations Data Used](doc/opencitations-data-used.svg)
+
