@@ -8,6 +8,11 @@ Pre-requisites
 * Python 2 or 3
 * [DAR](http://dar.linux.free.fr/)
 
+Setup
+-----
+
+`pip install -r requirements.txt`
+
 Configure
 ---------
 
