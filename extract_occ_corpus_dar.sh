@@ -14,7 +14,7 @@ original_pwd=$(pwd)
 
 for filename in $TEMP_DIR/*/*.1.dar; do
   abs_filename=$(realpath "$filename")
-  abs_dar_basename=${filename%.1.dar}
+  abs_dar_basename=${abs_filename%.1.dar}
   echo $abs_dar_basename
   target_dir=$(dirname "$filename")
   cd "$target_dir"
