@@ -5,10 +5,6 @@ import logging
 import os
 import csv
 
-from citerank.utils import (
-  makedirs
-)
-
 from citerank.crossref.crossref_oai_api import (
   CrossRefOaiApi
 )
@@ -30,6 +26,10 @@ def get_args_parser():
     help='use apache beam'
   )
   parser.add_argument(
+    '--cloud', action='store_true',
+    help='use cloud (implies "beam")'
+  )
+  parser.add_argument(
     '--runner',
     required=False,
     help='Apache Beam runner (implies "beam").'
@@ -38,6 +38,7 @@ def get_args_parser():
 
 def download_direct(argv):
   from tqdm import tqdm
+  from citerank.utils import makedirs
 
   logger = get_logger()
 
@@ -91,7 +92,11 @@ def download_using_apache_beam(argv):
   pipeline_options = PipelineOptions(pipeline_args)
 
   runner = args.runner
-  if not runner or runner == 'FnApiRunner':
+
+  if not runner:
+    runner = 'DataflowRunner' if args.cloud else 'FnApiRunner'
+
+  if runner == 'FnApiRunner':
     runner = create_fn_api_runner()
 
   get_request_handler = None
@@ -122,7 +127,7 @@ def download_using_apache_beam(argv):
 def main(argv=None):
   args, _ = get_args_parser().parse_known_args(argv)
 
-  if args.beam or args.runner:
+  if args.beam or args.cloud or args.runner:
     download_using_apache_beam(argv)
   else:
     download_direct(argv)

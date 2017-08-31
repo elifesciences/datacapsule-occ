@@ -2,10 +2,22 @@
 
 set -e
 
-TEMP_DIR=.temp
+source prepare-shell.sh
 
-if [ -f .config ]; then
-  source .config
+RUN_ARGS=(
+  --work-ids-csv-output-path $DATA_PATH/work-ids.csv
+  $@
+)
+
+if [ $USE_CLOUD == true ]; then
+  RUN_ARGS=(
+    ${RUN_ARGS[@]}
+    --setup_file "./setup.py"
+    --project "$PROJECT"
+    --temp_location "$DATA_PATH/temp"
+    --save_main_session
+    --cloud
+  )
 fi
 
-python -m citerank.crossref.download_work_ids --work-ids-csv-output-path $TEMP_DIR/work-ids.csv $@
+python -m citerank.crossref.download_work_ids ${RUN_ARGS[@]}
