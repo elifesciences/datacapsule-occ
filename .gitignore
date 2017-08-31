@@ -4,5 +4,7 @@
 /.vscode
 /venv
 
+/citerank.egg-info
+
 *.pyc
 
