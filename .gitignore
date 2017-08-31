@@ -1,6 +1,7 @@
 /.temp
 /.cache
 /.config
+/venv
 
 *.pyc
 
