@@ -1,4 +1,5 @@
 /.temp
+/.cache
 /.config
 
 *.pyc
