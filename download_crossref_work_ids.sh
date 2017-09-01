@@ -5,7 +5,7 @@ set -e
 source prepare-shell.sh
 
 RUN_ARGS=(
-  --work-ids-csv-output-path $DATA_PATH/work-ids.csv
+  --output-path $DATA_PATH
   $@
 )
 

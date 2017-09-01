@@ -2,6 +2,8 @@ import logging
 
 from lxml import etree
 
+from citerank.utils import default_get_request_handler
+
 OAI_SETS_URL = 'http://oai.crossref.org/OAIHandler?verb=ListSets'
 OAI_SET_IDS_URL_PREFIX = (
   'http://oai.crossref.org/OAIHandler?verb=ListIdentifiers&metadataPrefix=cr_unixml&set='
@@ -44,8 +46,7 @@ def _parse_response_as_xml(response):
 class CrossRefOaiApi(object):
   def __init__(self, get_request_handler=None):
     if get_request_handler is None:
-      from requests import get as requests_get
-      get_request_handler = requests_get
+      get_request_handler = default_get_request_handler()
     self.get_request_handler = get_request_handler
 
   def _iter_oai_list_chunks(self, url):
