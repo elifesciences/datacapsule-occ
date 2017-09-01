@@ -73,10 +73,10 @@ def download_work_ids_for_set_direct(csv_filename, oai_api, set_id, zipped=True)
   from tqdm import tqdm
 
   if zipped:
-    import gzip
+    from citerank.utils import gzip_open
 
     csv_filename += '.gz'
-    stream_open = gzip.open
+    stream_open = gzip_open
   else:
     stream_open = open
 
@@ -222,7 +222,7 @@ def download_using_apache_beam(argv):
       lambda set_id: get_logger().info('Processing set_id: %s', set_id)
     ))
     output |= "Retrieve Work Ids" >> beam.FlatMap(iter_set_it_and_work_id_in_set)
-    output |= "Format Row" >> beam.Map(lambda (set_id, work_id): ','.join([set_id, work_id]))
+    output |= "Format Row" >> beam.Map(lambda element: ','.join(list(element)))
     output |= "Write Output" >> WorkaroundWriteToText(
       work_ids_csv_output_path,
       header='set_id,work_id',

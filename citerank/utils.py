@@ -73,3 +73,14 @@ def get_request_handler_with_retry(max_retries=3, backoff_factor=1, status_force
     s.mount('http://', requests.adapters.HTTPAdapter(max_retries=retry))
     return s.get(url)
   return get_request_handler
+
+def gzip_open(filename, mode):
+  import gzip
+  import six
+
+  if mode == 'w' and not six.PY2:
+    from io import TextIOWrapper
+
+    return TextIOWrapper(gzip.open(filename, mode))
+  else:
+    return gzip.open(filename, mode)
