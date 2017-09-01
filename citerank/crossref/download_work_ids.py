@@ -75,7 +75,6 @@ def download_work_ids_for_set_direct(csv_filename, oai_api, set_id, zipped=True)
   if zipped:
     from citerank.utils import gzip_open
 
-    csv_filename += '.gz'
     stream_open = gzip_open
   else:
     stream_open = open
@@ -98,7 +97,7 @@ def download_work_ids_for_set_direct(csv_filename, oai_api, set_id, zipped=True)
         ])
   os.rename(temp_filename, csv_filename)
 
-def download_work_ids_for_set_direct_if_not_exists(set_id, output_path, max_retries):
+def download_work_ids_for_set_direct_if_not_exists(set_id, output_path, max_retries, zipped=True):
   from requests.exceptions import HTTPError
   from citerank.utils import get_request_handler_with_retry
 
@@ -106,15 +105,19 @@ def download_work_ids_for_set_direct_if_not_exists(set_id, output_path, max_retr
 
   try:
     work_ids_csv_output_path = os.path.join(output_path, 'work-ids-{}.csv'.format(set_id))
+
+    if zipped:
+      work_ids_csv_output_path += '.gz'
+
     if not os.path.isfile(work_ids_csv_output_path):
       logger.debug('retrieving work ids for %s', set_id)
 
       oai_api = CrossRefOaiApi(get_request_handler_with_retry(max_retries=max_retries))
-      download_work_ids_for_set_direct(work_ids_csv_output_path, oai_api, set_id)
+      download_work_ids_for_set_direct(work_ids_csv_output_path, oai_api, set_id, zipped=zipped)
       logger.debug('done retrieving work ids for %s', set_id)
       return 1
     else:
-      logger.debug('work ids already retrieved for %s', set_id)
+      logger.info('work ids already retrieved for %s', set_id)
       return 0
   except HTTPError as e:
     logger.warning('error retrieving work ids for %s due to %s', set_id, e)
