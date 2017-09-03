@@ -27,8 +27,7 @@ def get_args_parser():
     description='Download Crossref Works data'
   )
   parser.add_argument(
-    '--output-file', type=str, required=False,
-    default='.temp',
+    '--output-file', type=str, required=True,
     help='path to output file'
   )
   parser.add_argument(
