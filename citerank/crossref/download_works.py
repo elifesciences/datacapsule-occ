@@ -61,6 +61,8 @@ def iter_page_responses(base_url, max_retries, start_cursor='*'):
       response = future_response.result()
       response.raw.decode_content = True
 
+      # try to find the next cursor in the first response characters
+      # we don't need to wait until the whole response has been received
       raw = BufferedReader(response.raw)
       first_chars = raw.peek(1000).decode()
       m = next_cursor_pattern.search(first_chars)
@@ -68,6 +70,8 @@ def iter_page_responses(base_url, max_retries, start_cursor='*'):
       logger.info('next_cursor: %s', next_cursor)
 
       if next_cursor:
+        # request the next page as soon as possible,
+        # we will read the result in the next iteration
         future_response = request_page(next_cursor)
       else:
         future_response = None
