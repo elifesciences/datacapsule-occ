@@ -168,7 +168,7 @@ def download_direct(argv):
   output_path = args.output_path
   makedirs(output_path, exist_ok=True)
 
-  json_filename_pattern = os.path.join(output_path, 'works.zip')
+  json_filename_pattern = os.path.join(output_path, 'crossref_works.zip')
 
   download_works_direct(
     json_filename_pattern,
