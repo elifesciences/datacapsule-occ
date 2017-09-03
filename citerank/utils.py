@@ -54,24 +54,34 @@ def default_get_request_handler():
   from requests import get as requests_get
   return requests_get
 
+def configure_session_retry(session=None, max_retries=3, backoff_factor=1, status_forcelist=None):
+  import requests
+  from urllib3 import Retry
+
+  retry = Retry(
+    connect=max_retries,
+    read=max_retries,
+    status_forcelist=status_forcelist,
+    redirect=5,
+    backoff_factor=backoff_factor
+  )
+  session.mount('http://', requests.adapters.HTTPAdapter(max_retries=retry))
+  session.mount('http://', requests.adapters.HTTPAdapter(max_retries=retry))
+
 def get_request_handler_with_retry(max_retries=3, backoff_factor=1, status_forcelist=None):
+  import requests
+
   if status_forcelist is None:
     status_forcelist = [500, 503]
-  def get_request_handler(url):
-    import requests
-    from urllib3 import Retry
-
-    retry = Retry(
-      connect=max_retries,
-      read=max_retries,
-      status_forcelist=status_forcelist,
-      redirect=5,
-      backoff_factor=backoff_factor
-    )
+  def get_request_handler(url, **kwargs):
     s = requests.Session()
-    s.mount('http://', requests.adapters.HTTPAdapter(max_retries=retry))
-    s.mount('http://', requests.adapters.HTTPAdapter(max_retries=retry))
-    return s.get(url)
+    configure_session_retry(
+      session=s,
+      max_retries=max_retries,
+      backoff_factor=backoff_factor,
+      status_forcelist=status_forcelist
+    )
+    return s.get(url, **kwargs)
   return get_request_handler
 
 def gzip_open(filename, mode):
