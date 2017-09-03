@@ -5,7 +5,7 @@ import logging
 import os
 import re
 import json
-from zipfile import ZipFile
+from zipfile import ZipFile, ZIP_DEFLATED
 from urllib.parse import quote
 
 from requests_futures.sessions import FuturesSession
@@ -113,7 +113,7 @@ def save_page_responses(base_url, zip_filename, max_retries, items_per_page):
   pbar = None
 
   try:
-    with ZipFile(zip_filename, 'a') as zf:
+    with ZipFile(zip_filename, 'a', ZIP_DEFLATED) as zf:
       page_responses = iter_page_responses(
         base_url,
         max_retries=max_retries,
