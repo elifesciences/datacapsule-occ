@@ -6,7 +6,6 @@ import os
 import re
 import json
 from zipfile import ZipFile
-from io import BufferedReader
 from urllib.parse import quote
 
 from requests_futures.sessions import FuturesSession
@@ -61,12 +60,13 @@ def iter_page_responses(base_url, max_retries, start_cursor='*'):
     future_response = request_page(start_cursor)
     while future_response:
       response = future_response.result()
-      response.raw.decode_content = True
 
       # try to find the next cursor in the first response characters
       # we don't need to wait until the whole response has been received
-      raw = BufferedReader(response.raw)
-      first_chars = raw.peek(1000).decode()
+      raw = response.raw
+      raw.decode_content = True
+      first_bytes = raw.read(1000)
+      first_chars = first_bytes.decode()
       m = next_cursor_pattern.search(first_chars)
       next_cursor = m.group(1).replace('\\/', '/') if m else None
       logger.debug('next_cursor: %s', next_cursor)
@@ -78,7 +78,8 @@ def iter_page_responses(base_url, max_retries, start_cursor='*'):
       else:
         future_response = None
 
-      content = raw.read()
+      remaining_bytes = raw.read()
+      content = first_bytes + remaining_bytes
       yield next_cursor, content
 
 def save_page_responses(base_url, zip_filename, max_retries, items_per_page):
