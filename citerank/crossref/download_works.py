@@ -5,7 +5,8 @@ import logging
 import os
 import re
 import json
-from zipfile import ZipFile, ZIP_DEFLATED
+import zipfile
+from zipfile import ZipFile
 from urllib.parse import quote
 
 from requests_futures.sessions import FuturesSession
@@ -13,6 +14,10 @@ from tqdm import tqdm
 
 from citerank.utils import configure_session_retry
 
+
+DEFLATE = "deflate"
+BZIP2 = "bzip2"
+LZMA = "lzma"
 
 def get_logger():
   return logging.getLogger(__name__)
@@ -22,9 +27,9 @@ def get_args_parser():
     description='Download Crossref Works data'
   )
   parser.add_argument(
-    '--output-path', type=str, required=False,
+    '--output-file', type=str, required=False,
     default='.temp',
-    help='path to download directory'
+    help='path to output file'
   )
   parser.add_argument(
     '--max-retries',
@@ -37,6 +42,13 @@ def get_args_parser():
     type=int,
     default=1000,
     help='Number rows per page to retrieve.'
+  )
+  parser.add_argument(
+    '--compression',
+    type=str,
+    choices=[DEFLATE, BZIP2, LZMA],
+    default=DEFLATE,
+    help='Zip compression to use (requires Python 3.3+).'
   )
   return parser
 
@@ -82,7 +94,7 @@ def iter_page_responses(base_url, max_retries, start_cursor='*'):
       content = first_bytes + remaining_bytes
       yield next_cursor, content
 
-def save_page_responses(base_url, zip_filename, max_retries, items_per_page):
+def save_page_responses(base_url, zip_filename, max_retries, items_per_page, compression):
   logger = get_logger()
 
   state_filename = zip_filename + '.meta'
@@ -113,7 +125,7 @@ def save_page_responses(base_url, zip_filename, max_retries, items_per_page):
   pbar = None
 
   try:
-    with ZipFile(zip_filename, 'a', ZIP_DEFLATED) as zf:
+    with ZipFile(zip_filename, 'a', compression) as zf:
       page_responses = iter_page_responses(
         base_url,
         max_retries=max_retries,
@@ -150,14 +162,15 @@ def save_page_responses(base_url, zip_filename, max_retries, items_per_page):
     if pbar:
       pbar.close()
 
-def download_works_direct(zip_filename, batch_size, max_retries):
+def download_works_direct(zip_filename, batch_size, max_retries, compression):
   save_page_responses(
     'http://api.crossref.org/works?rows={}'.format(
       batch_size
     ),
     zip_filename=zip_filename,
     max_retries=max_retries,
-    items_per_page=batch_size
+    items_per_page=batch_size,
+    compression=compression
   )
 
 def download_direct(argv):
@@ -165,15 +178,20 @@ def download_direct(argv):
 
   args = get_args_parser().parse_args(argv)
 
-  output_path = args.output_path
-  makedirs(output_path, exist_ok=True)
+  output_file = args.output_file
+  makedirs(os.path.basename(output_file), exist_ok=True)
 
-  zip_filename = os.path.join(output_path, 'crossref_works.zip')
+  compression = zipfile.ZIP_DEFLATED
+  if args.compression == BZIP2:
+    compression = zipfile.ZIP_BZIP2
+  elif args.compression == LZMA:
+    compression = zipfile.ZIP_LZMA
 
   download_works_direct(
-    zip_filename,
+    output_file,
     batch_size=args.batch_size,
-    max_retries=args.max_retries
+    max_retries=args.max_retries,
+    compression=compression
   )
 
 def main(argv=None):

@@ -5,7 +5,7 @@ set -e
 source prepare-shell.sh
 
 RUN_ARGS=(
-  --output-path $DATA_PATH
+  --output-file $DATA_PATH/crossref-works.zip
   $@
 )
 
