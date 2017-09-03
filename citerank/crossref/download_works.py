@@ -8,7 +8,9 @@ import json
 from zipfile import ZipFile
 from io import BufferedReader
 from urllib.parse import quote
+
 from requests_futures.sessions import FuturesSession
+from tqdm import tqdm
 
 from citerank.utils import configure_session_retry
 
@@ -67,7 +69,7 @@ def iter_page_responses(base_url, max_retries, start_cursor='*'):
       first_chars = raw.peek(1000).decode()
       m = next_cursor_pattern.search(first_chars)
       next_cursor = m.group(1).replace('\\/', '/') if m else None
-      logger.info('next_cursor: %s', next_cursor)
+      logger.debug('next_cursor: %s', next_cursor)
 
       if next_cursor:
         # request the next page as soon as possible,
@@ -90,43 +92,62 @@ def save_page_responses(base_url, zip_filename, max_retries, items_per_page):
   start_cursor = '*'
   offset = 0
   page_index = 0
+  total_results = None
   if os.path.isfile(state_filename):
     with open(state_filename, 'r') as meta_f:
       previous_state = json.load(meta_f)
       start_cursor = previous_state['cursor']
       page_index = previous_state['page_index']
       offset = previous_state['offset']
+      total_results = previous_state.get('total_results')
       if previous_state['items_per_page'] != items_per_page:
         raise RuntimeError('please continue using the same items per page: {}'.format(
           previous_state['items_per_page']
         ))
 
-  logger.info('start cursor: %s (offset %s)', start_cursor, offset)
+  logger.info('start cursor: %s (offset %s, total: %s)', start_cursor, offset, total_results)
 
-  with ZipFile(zip_filename, 'a') as zf:
-    page_responses = iter_page_responses(
-      base_url,
-      max_retries=max_retries,
-      start_cursor=start_cursor
-    )
+  total_results_pattern = re.compile(r'"total-results":(\d+)\D')
 
-    for next_cursor, page_response in page_responses:
-      logger.info('response: %s (%s)', len(page_response), next_cursor)
+  pbar = None
 
-      zf.writestr(page_filename_pattern.format(page_index, offset), page_response)
+  try:
+    with ZipFile(zip_filename, 'a') as zf:
+      page_responses = iter_page_responses(
+        base_url,
+        max_retries=max_retries,
+        start_cursor=start_cursor
+      )
 
-      page_index += 1
-      offset += items_per_page
+      for next_cursor, page_response in page_responses:
+        logger.debug('response: %s (%s)', len(page_response), next_cursor)
 
-      if next_cursor:
-        state_str = json.dumps({
-          'cursor': next_cursor,
-          'offset': offset,
-          'page_index': page_index,
-          'items_per_page': items_per_page
-        })
-        with open(state_filename, 'w') as meta_f:
-          meta_f.write(state_str)
+        if total_results is None:
+          m = total_results_pattern.search(page_response.decode())
+          total_results = int(m.group(1)) if m else None
+
+        if pbar is None:
+          pbar = tqdm(total=total_results, leave=False, initial=offset)
+
+        zf.writestr(page_filename_pattern.format(page_index, offset), page_response)
+
+        page_index += 1
+        offset += items_per_page
+        pbar.update(items_per_page)
+
+        if next_cursor:
+          state_str = json.dumps({
+            'cursor': next_cursor,
+            'offset': offset,
+            'page_index': page_index,
+            'items_per_page': items_per_page,
+            'total_results': total_results
+          })
+          with open(state_filename, 'w') as meta_f:
+            meta_f.write(state_str)
+  finally:
+    if pbar:
+      pbar.close()
 
 def download_works_direct(zip_filename, batch_size, max_retries):
   save_page_responses(
