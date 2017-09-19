@@ -56,7 +56,7 @@ def default_get_request_handler():
 
 def configure_session_retry(session=None, max_retries=3, backoff_factor=1, status_forcelist=None):
   import requests
-  from urllib3 import Retry
+  from requests.packages.urllib3 import Retry
 
   retry = Retry(
     connect=max_retries,
