@@ -54,7 +54,10 @@ def default_get_request_handler():
   from requests import get as requests_get
   return requests_get
 
-def configure_session_retry(session=None, max_retries=3, backoff_factor=1, status_forcelist=None):
+def configure_session_retry(
+  session=None, max_retries=3, backoff_factor=1, status_forcelist=None,
+  **kwargs):
+
   import requests
   from requests.packages.urllib3 import Retry
 
@@ -65,8 +68,8 @@ def configure_session_retry(session=None, max_retries=3, backoff_factor=1, statu
     redirect=5,
     backoff_factor=backoff_factor
   )
-  session.mount('http://', requests.adapters.HTTPAdapter(max_retries=retry))
-  session.mount('http://', requests.adapters.HTTPAdapter(max_retries=retry))
+  session.mount('http://', requests.adapters.HTTPAdapter(max_retries=retry, **kwargs))
+  session.mount('https://', requests.adapters.HTTPAdapter(max_retries=retry, **kwargs))
 
 def get_request_handler_with_retry(max_retries=3, backoff_factor=1, status_forcelist=None):
   import requests
