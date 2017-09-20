@@ -152,21 +152,21 @@ def iter_item_responses_threaded(base_url, max_retries, ids, num_workers=50):
 def save_item_responses(base_url, zip_filename, max_retries, num_workers, compression):
   logger = get_logger()
 
-  get_logger().info('creating range')
+  logger.info('creating range')
   ids = range(100 * 1000 * 1000)
-  get_logger().info('getting len')
+  logger.info('getting len')
   total = len(ids)
-  get_logger().info('len: %s', total)
+  logger.info('len: %s', total)
   item_responses = iter_item_responses_threaded(
     base_url=base_url,
     max_retries=max_retries,
     num_workers=num_workers,
     ids=ids
   )
-  get_logger().info('iterating responses')
+  logger.info('iterating responses')
   for item_id, response in tqdm(item_responses, total=total, leave=True):
     # TODO only implemented so far as to establish speed
-    pass
+    logger.debug('received response: %s - %s', item_id, response)
 
 def download_works_direct(zip_filename, max_retries, num_workers, compression, email):
   save_item_responses(
