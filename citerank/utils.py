@@ -4,6 +4,8 @@ import csv
 from multiprocessing import Pool
 from contextlib import contextmanager
 
+import six
+
 def makedirs(path, exist_ok=False):
   try:
     # Python 3
@@ -89,7 +91,6 @@ def get_request_handler_with_retry(max_retries=3, backoff_factor=1, status_force
 
 def gzip_open(filename, mode):
   import gzip
-  import six
 
   if mode == 'w' and not six.PY2:
     from io import TextIOWrapper
@@ -97,3 +98,32 @@ def gzip_open(filename, mode):
     return TextIOWrapper(gzip.open(filename, mode))
   else:
     return gzip.open(filename, mode)
+
+def optionally_compressed_open(filename, mode):
+  if filename.endswith('.gz'):
+    return gzip_open(filename, mode)
+  else:
+    return open(filename, mode)
+
+def open_csv_output(filename):
+  return optionally_compressed_open(filename, 'w')
+
+def write_csv_rows(writer, iterable):
+  if six.PY2:
+    for row in iterable:
+      writer.writerow([
+        x.encode('utf-8') if isinstance(x, six.text_type) else x
+        for x in row
+      ])
+  else:
+    for row in iterable:
+      writer.writerow(row)
+
+def write_csv_row(writer, row):
+  write_csv_rows(writer, [row])
+
+def write_csv(filename, columns, iterable):
+  with open_csv_output(filename) as csv_f:
+    writer = csv.writer(csv_f)
+    write_csv_rows(writer, [columns])
+    write_csv_rows(writer, iterable)
