@@ -69,6 +69,7 @@ def iter_page_responses(base_url, max_retries, start_cursor='*'):
       return session.get(url, stream=True)
 
     future_response = request_page(start_cursor)
+    previous_cursor = start_cursor
     while future_response:
       response = future_response.result()
 
@@ -81,11 +82,14 @@ def iter_page_responses(base_url, max_retries, start_cursor='*'):
       m = next_cursor_pattern.search(first_chars)
       next_cursor = m.group(1).replace('\\/', '/') if m else None
       logger.debug('next_cursor: %s', next_cursor)
+      if next_cursor == previous_cursor:
+        next_cursor = None
 
       if next_cursor:
         # request the next page as soon as possible,
         # we will read the result in the next iteration
         future_response = request_page(next_cursor)
+        previous_cursor = next_cursor
       else:
         future_response = None
 
